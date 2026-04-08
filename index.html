@@ -4,24 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>機車改裝預覽</title>
+<title>機車改裝模擬器</title>
 
 <style>
 body{
-    font-family: Arial;
     background:#111;
     color:white;
     text-align:center;
-}
-
-.container{
-    max-width:900px;
-    margin:auto;
+    font-family:Arial;
 }
 
 .preview{
     position:relative;
     display:inline-block;
+    max-width:90%;
 }
 
 .preview img{
@@ -31,12 +27,13 @@ body{
 
 .part{
     position:absolute;
-    pointer-events:none;
-    display:none;
+    cursor:grab;
+    width:150px;
+    touch-action:none;
 }
 
 .controls{
-    margin-top:20px;
+    margin-top:15px;
 }
 
 button{
@@ -46,69 +43,96 @@ button{
     border-radius:6px;
     background:#00c3ff;
     color:white;
-    font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h2>🏍️ 機車改裝模擬器 PRO</h2>
 
-<h2>🏍️ 我的機車改裝預覽</h2>
+<input type="file" id="upload"><br><br>
 
-<input type="file" id="upload">
+<div class="preview" id="preview">
 
-<div class="preview">
-
-    <!-- 原車 -->
     <img id="bike">
 
-    <!-- 改裝件 -->
-    <img id="windshield" class="part"
-        src="https://i.imgur.com/4AiXzf8.png"
-        style="top:10%; left:35%; width:30%;">
+    <img src="https://i.imgur.com/4AiXzf8.png"
+         class="part" id="windshield"
+         style="top:50px; left:100px; display:none;">
 
-    <img id="exhaust" class="part"
-        src="https://i.imgur.com/Z6X9a6L.png"
-        style="top:65%; left:60%; width:25%;">
-
-    <img id="sticker" class="part"
-        src="https://i.imgur.com/qIufhof.png"
-        style="top:40%; left:30%; width:20%;">
+    <img src="https://i.imgur.com/Z6X9a6L.png"
+         class="part" id="exhaust"
+         style="top:200px; left:200px; display:none;">
 
 </div>
 
 <div class="controls">
     <button onclick="toggle('windshield')">風鏡</button>
     <button onclick="toggle('exhaust')">排氣管</button>
-    <button onclick="toggle('sticker')">貼紙</button>
-</div>
-
+    <button onclick="resize(1.1)">放大</button>
+    <button onclick="resize(0.9)">縮小</button>
 </div>
 
 <script>
 
-// 上傳照片
-document.getElementById("upload").onchange = e=>{
+// 上傳車照片
+upload.onchange = e=>{
     const file = e.target.files[0];
     const reader = new FileReader();
 
-    reader.onload = function(evt){
-        document.getElementById("bike").src = evt.target.result;
+    reader.onload = evt=>{
+        bike.src = evt.target.result;
     };
 
     reader.readAsDataURL(file);
 };
 
-// 顯示/隱藏改裝
+// 顯示改裝
 function toggle(id){
-    const part = document.getElementById(id);
+    const el = document.getElementById(id);
+    el.style.display =
+        el.style.display==="none" ? "block":"none";
+}
 
-    if(part.style.display==="block")
-        part.style.display="none";
-    else
-        part.style.display="block";
+// 拖曳功能（手機+電腦）
+let selected=null;
+let offsetX=0, offsetY=0;
+
+document.querySelectorAll(".part").forEach(el=>{
+
+    el.addEventListener("pointerdown",e=>{
+        selected=el;
+        offsetX=e.offsetX;
+        offsetY=e.offsetY;
+        el.setPointerCapture(e.pointerId);
+    });
+
+    el.addEventListener("pointermove",e=>{
+        if(!selected) return;
+
+        const rect =
+            document.getElementById("preview")
+            .getBoundingClientRect();
+
+        selected.style.left =
+            (e.clientX-rect.left-offsetX)+"px";
+
+        selected.style.top =
+            (e.clientY-rect.top-offsetY)+"px";
+    });
+
+    el.addEventListener("pointerup",()=>{
+        selected=null;
+    });
+});
+
+// 縮放
+function resize(scale){
+    if(!selected) return;
+
+    const w = selected.offsetWidth;
+    selected.style.width = (w*scale)+"px";
 }
 
 </script>
