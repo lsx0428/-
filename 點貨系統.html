@@ -2,101 +2,115 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>點貨系統</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>機車改裝預覽</title>
+
 <style>
-  body { font-family: Arial, sans-serif; padding: 10px; font-size: 12px; }
-  h2 { margin: 8px 0 2px; font-size: 14px; }
-  .item { display: flex; align-items: center; margin: 1px 0; }
-  .item span { width: 90px; }
-  .total {
-    width: 50px;
-    text-align: center;
-    font-size: 12px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-  }
-  .input {
-    width: 50px;
-    text-align: center;
-    font-size: 12px;
-  }
-  button { padding: 1px 4px; font-size: 12px; margin-left: 2px; }
+body{
+    font-family: Arial;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.preview{
+    position:relative;
+    display:inline-block;
+}
+
+.preview img{
+    max-width:100%;
+    border-radius:10px;
+}
+
+.part{
+    position:absolute;
+    pointer-events:none;
+    display:none;
+}
+
+.controls{
+    margin-top:20px;
+}
+
+button{
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:6px;
+    background:#00c3ff;
+    color:white;
+    font-size:16px;
+}
 </style>
 </head>
+
 <body>
 
-<h1 style="font-size:16px;">
-  點貨系統 <span id="date"></span>
-</h1>
+<div class="container">
 
-<div id="menu"></div>
+<h2>🏍️ 我的機車改裝預覽</h2>
+
+<input type="file" id="upload">
+
+<div class="preview">
+
+    <!-- 原車 -->
+    <img id="bike">
+
+    <!-- 改裝件 -->
+    <img id="windshield" class="part"
+        src="https://i.imgur.com/4AiXzf8.png"
+        style="top:10%; left:35%; width:30%;">
+
+    <img id="exhaust" class="part"
+        src="https://i.imgur.com/Z6X9a6L.png"
+        style="top:65%; left:60%; width:25%;">
+
+    <img id="sticker" class="part"
+        src="https://i.imgur.com/qIufhof.png"
+        style="top:40%; left:30%; width:20%;">
+
+</div>
+
+<div class="controls">
+    <button onclick="toggle('windshield')">風鏡</button>
+    <button onclick="toggle('exhaust')">排氣管</button>
+    <button onclick="toggle('sticker')">貼紙</button>
+</div>
+
+</div>
 
 <script>
-// 日期
-const today = new Date();
-const weekdays = ["日","一","二","三","四","五","六"];
-document.getElementById("date").textContent =
-  `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}（${weekdays[today.getDay()]}）`;
 
-const menuData = {
-  "鍋貼": ["招牌", "韭菜", "辣味", "咖哩", "玉米", "素食"],
-  "水餃": ["招牌", "韭菜", "辣味", "咖哩", "玉米", "素食", "鮮蝦"],
-  "麵": ["細", "粗"],
-  "餛飩": ["珍珠", "菜肉"],
-  "牛肉": ["紅燒", "麻辣", "清燉"],
-  "牛湯": ["紅燒", "麻辣"],
-  "排骨": ["滷排", "古排"],
-  "其他": ["酸菜", "冬粉"],
-  "飲料": ["白豆", "黑豆", "紅茶", "無糖"]
+// 上傳照片
+document.getElementById("upload").onchange = e=>{
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(evt){
+        document.getElementById("bike").src = evt.target.result;
+    };
+
+    reader.readAsDataURL(file);
 };
 
-const menuDiv = document.getElementById("menu");
+// 顯示/隱藏改裝
+function toggle(id){
+    const part = document.getElementById(id);
 
-// 生成介面
-for (const category in menuData) {
-  const h2 = document.createElement("h2");
-  h2.textContent = category;
-  menuDiv.appendChild(h2);
-
-  menuData[category].forEach(item => {
-    const id = `${category}-${item}`;
-
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <span>${item}：</span>
-      總
-      <input class="total" id="${id}-total" type="number" value="0" readonly>
-      加減
-      <input class="input" id="${id}-input" type="number" value="0" step="0.1">
-      <button onclick="update('${id}', 1)">＋</button>
-      <button onclick="update('${id}', -1)">－</button>
-      <button onclick="resetItem('${id}')">⟲</button>
-    `;
-    menuDiv.appendChild(div);
-  });
+    if(part.style.display==="block")
+        part.style.display="none";
+    else
+        part.style.display="block";
 }
 
-// 加減（輸入後歸零）
-function update(id, dir) {
-  const totalEl = document.getElementById(`${id}-total`);
-  const inputEl = document.getElementById(`${id}-input`);
-
-  let total = parseFloat(totalEl.value) || 0;
-  let input = parseFloat(inputEl.value) || 0;
-
-  total += dir * input;
-  if (total < 0) total = 0;
-
-  totalEl.value = Math.round(total * 10) / 10;
-  inputEl.value = 0; // ⭐ 加完後歸零
-}
-
-// 重置
-function resetItem(id) {
-  document.getElementById(`${id}-total`).value = 0;
-  document.getElementById(`${id}-input`).value = 0;
-}
 </script>
 
 </body>
